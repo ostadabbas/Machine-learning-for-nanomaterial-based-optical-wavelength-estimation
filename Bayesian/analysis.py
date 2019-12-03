@@ -1,10 +1,15 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Oct 16 16:08:44 2019
-
-@author: davoud
-"""
+## Bayesian inference, part 2:
+# This is the main code to perform the Bayesian inference. It reads the "trans.json" 
+# file as well as "testT.csv" file, and outputs the estimated wavelengths for 
+# real/synthesied test samples  using maximum a posteriori or MAP estimation. The estimated 
+# wavelengths for synthesized test samples can show how well the model is working on the 
+# training set itself. This way, user can calculate test error and training error. Each 
+# section of this code can accomplish a different task. First, the used needs to run 
+# the code, but it will not output any results. To obtain results the user needs to 
+# call specific funcitons defined in this code. The task of each function is explained 
+# right before fucntion's definition. First, run the code; then choose a function, 
+# and call it from console or comand line. The functions that output desired results 
+# are pointed out by "Call this function for:". 
 
 import json
 import numpy as np
@@ -12,7 +17,6 @@ import matplotlib.pyplot as plt
 from scipy import stats
 import xlsxwriter
 import time
-import pdb
 
 def load(fname):
     model = None
@@ -29,8 +33,8 @@ def get_row(model,lam):
     stds = model['stds'][idx,:]
     return mns,stds   
 
-# generate a test value for a given frequency using recorded stats
 def gen_test(model, lam):
+# generate a test value for a given frequency using recorded stats
     mns,std = get_row(model,lam)
     val = [np.random.normal(m,s) for m,s in zip(mns,std)]
     return val
@@ -47,27 +51,23 @@ def full_prob(obs,model):
     probs = [prob_obs_given_lambda(obs,model,w) for w in waves]
     probs = np.array(probs)
     probs = probs/np.sum(probs)
-#    plt.figure()
-#    plt.plot(waves,probs, '.')
-#    plt.show()
     return probs, waves
 
 def plot_prob(obs, model):
     probs, waves = full_prob(obs,model)
-#    waves = model['wavelengths']
     plt.figure()
     plt.plot(model['wavelengths'], probs, '.')
     plt.ylabel('Posterior Probability',fontname="Times New Roman",fontweight="bold")
     plt.xlabel('Wavelength (nm)',fontname="Times New Roman",fontweight="bold")
     plt.title('Posterior probability for real wavelength $\lambda$=700nm using 2 filters',fontname="Times New Roman",fontweight="bold")
     plt.grid(True)
-#    plt.show()
+    plt.show()
     plt.savefig("MAP analysis.pdf")
     
 def test_trials():
     model = load("trans.json")
     waves = model['wavelengths']
-    trials = np.genfromtxt('trialsT_191001.csv', delimiter=',')
+    trials = np.genfromtxt('trialsT.csv', delimiter=',')
     trials = trials[:2,:]
     print(trials.shape)
     freqs = trials[:,0].astype(int)
@@ -86,18 +86,20 @@ def test_trials():
     vals = list(find_all())
     return vals
 
+
 def demo():
+# "Call this function for:"
+# By calling as demo() in console or command line, this function synthesises a test 
+# sample of transmittances for the desired wavelength shown by waves=[some wavelength] 
+# below; then performs Bayesian algorithm and plots the probability distributiob vs. 
+# wavelength. The maximum value of this plot is the result of MAP estimation for the 
+# input desired wavelength. It also saves the plot as "MAP analysis.pdf".
     model = load("trans.json")
     waves=[360]
     for w in waves:
         x = gen_test(model, w)
-#        x = test_trials()
         plot_prob(x,model)
-        #plt.savefig('exported.pdf')
-#    pr = full_prob(x,model)
-        
-    
-        
+
 def return_vals():
     model = load("trans.json")
     waves=[1020]
@@ -107,12 +109,15 @@ def return_vals():
     return probs, waves
 
 def arg_max(input_waves):
+# "Call this function for:"
+# This function takes the list of user-defined walenghts (e.g. [400, 500, 600]), 
+# synthesizes test samples for them, finds their estimated wavelengths, outputs
+# the results in the screen as well as writes them in file "Argmax_train.xlsx".
     model = load("trans.json")
     ws = len(input_waves) # number of desired wavelengths to try
     num = 10              # How many times to try each wavelength
     max_probs = np.zeros(shape=(ws,num))
     wavelengths = np.array(model['wavelengths'])
-
     for i in range (ws):
         for j in range (num):
             x = gen_test(model, input_waves[i])
@@ -126,23 +131,29 @@ def arg_max(input_waves):
     workbook.close()  
     return max_probs
 
-input_waves = np.arange(1100,349,-1)
 
-    
-def check_trials(): # 
+input_waves = np.arange(1100,349,-1)  # Example of input waves that user can provide. 
+# Here we have provided an array of all walengths in the training set, so calling 
+# test samples for alll of these wavelengths, esrtimate their wavelength, and output 
+# arg_max(input_waves) will synthesie on the screen.
+
+   
+# "Call this function for:"
+# This function estimates the wavelength of entire or a portion of the test set.
+# While doing so, it shows the resuts at every 100 saples, and finally writes the 
+# entire results in "Argmax_test.xlsx" file. This function also shows the total time 
+# for testing in the screen.
+def check_trials(): 
     model = load("trans.json")
     waves = model['wavelengths']
-    trials = np.genfromtxt('trialsT_191001.csv', delimiter=',')
-#    howmany = 200
-    trials = trials[:,:]
+    trials = np.genfromtxt('trialsT.csv', delimiter=',')
+    trials = trials[:,:] # Here we can set which portion of test set to be tested. The default is all.
     freqs = trials[:,0].astype(int)
     data = trials[:,1:]
     mns = model['means']
     stds = model['stds']
     stds_log = np.sum(np.log(stds), axis = 1)
-#    wave_st = 350 
-    
-#    pdb.set_trace()
+
     def find_map(obs):
         #pdb.set_trace()
         prob_li = -stds_log-1.0/2*np.sum(((mns-obs)/stds)**2, axis = 1)
@@ -153,23 +164,23 @@ def check_trials(): #
     def find_all():
         for idx,f,x in zip(range(len(freqs)),freqs,data):
             yield f,find_map(x)
-#            if (idx % 100) == 0:
-#                print("{} of {}".format(idx,len(freqs)))
+            if (idx % 100) == 0:
+                print("{} of {}".format(idx,len(freqs)))
                 
     time_start = time.time()            
     vals = list(find_all())
     time_end = time.time()
     
-#    workbook = xlsxwriter.Workbook("Argmax_191001_vectorized.xlsx")
-#    worksheet = workbook.add_worksheet()
-#    row = 1
-#
-#    for col, data in enumerate(vals):
-#        worksheet.write_column(row, col, data)
-#    workbook.close()  
+    workbook = xlsxwriter.Workbook("Argmax_test.xlsx")
+    worksheet = workbook.add_worksheet()
+    row = 1
+
+    for col, data in enumerate(vals):
+        worksheet.write_column(row, col, data)
+    workbook.close()  
     
     print('elapsed time (sec) : %0.2f' % ((time_end-time_start)))
-#    return vals
+    return vals
     
     
     

@@ -1,11 +1,25 @@
+## Bayesian inference, part 1:
+# Gathering statistics from the xlsx files. This code reads a "Transmittance.xlsx" 
+# that contains entire training set and outputs a "trans.json" file that contains 
+# the statistics of mean average transmittance for each filter at each wavelength. 
+# In our case it contains 11 sheets, one sheet per nanomaterial filter (F1, F2, ..., F11). 
+# Each sheet contains transimttance spectrum that filter. The first column is wavelength, 
+# and from second column to the end the transmittance values are given. 
+
+# Furthermore, this file can read a second file "TestT.xlsx" containg the test samples.
+# The format of this file is the same as the Transmittance.xlsx file. Upon executing 
+# this code will read the test samples and put all of them in a "testT.csv" file in a 
+# single sheet in a way that each row is a sample of T vector including 11 transmittance
+# values t1, t2, ..., t11, one per filter. The total number of rows is equal to the total 
+# number of samples. If the test sample file is alredy at hand in the mentioned way and 
+# this part of the code is not needed the user can comment out the last two lines of code.
+
 import openpyxl
 import numpy as np
-#import matplotlib.pyplot as plt
 import pandas
 import json
 
-trans_prime= "allT_fourfifth.xlsx"
-#energy_file = "Energy.xlsx"
+trans = "Transmittance.xlsx"
 
 min_count = 10
 
@@ -20,7 +34,7 @@ def extract_vals(ws):
     # get the wavelengths
     cnt = dfv.count(axis=1) >= min_count
     wavelengths = df[0][1:]
-    wavelengths = wavelengths[cnt]            # ?
+    wavelengths = wavelengths[cnt]
     
     
     # for each wavelength, get mean/std
@@ -47,7 +61,7 @@ def combine(wb, sensors):
     for idx,vals in enumerate(allvals):
         wls,mns,stds = vals
         wlsD = {w:idx for idx,w in enumerate(wls)}
-        usew=[wlsD[w] for w in wavelengths]          # ?
+        usew=[wlsD[w] for w in wavelengths]          
         
         all_means[:,idx] = mns[usew]
         all_stds[:,idx] = stds[usew]
@@ -55,7 +69,6 @@ def combine(wb, sensors):
 def load_all(fname):
     wb = load(fname)
     sensors = wb.sheetnames 
-#    sensors = [u'T1'] # I am chaning number of sensors to be used
     waves,mns,stds = combine(wb,sensors)
     return sensors,waves,mns,stds
 
@@ -69,7 +82,7 @@ def save_model(fname,jsonfname):
     with open(jsonfname, 'w') as f:
         json.dump(outd,f, sort_keys=True, indent=4)
 
-def load_trials(fname):
+def load_test(fname):
     wb = load(fname)
     tfreqs = wb.sheetnames
     def proc():
@@ -85,8 +98,7 @@ def load_trials(fname):
     
 
 if __name__ == "__main__":
-    save_model("allT_fourfifth.xlsx", "trans_fourfifth.json")
-#    save_model(energy_file, "energy.json")
+    save_model("Transmittance.xlsx", "trans.json")
     
-#    vals = load_trials('TrialsT.xlsx')
-#    np.savetxt('trialsT.csv',vals, delimiter=',')
+    vals = load_test('TestT.xlsx')
+    np.savetxt('testT.csv',vals, delimiter=',')
