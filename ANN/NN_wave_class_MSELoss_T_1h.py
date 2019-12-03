@@ -1,3 +1,4 @@
+## Artificial neural networks, using Torch
 # This code creates a 3-layer fully connected neural network architecture, an input layer, 
 # a hidden layer and an output laye, to train the model, and finally outputs a file
 # containing the estimated wavelengths as well as truth-value wavelengths of the 
@@ -9,10 +10,10 @@
 
 # This code can either start training the model from scracth or use already 
 # trained model, depending on whether the "Restore" value is set to False or True (shown below). 
-# If Restore == True, the code will load from a saved model, else, it will create the
-# './ckpt_nnT_1h_files' to save the parameter files. The code also can run on GPU as well as
-# CPU if GPU is available. While training, the code will output the training and testing  
-# accuracy. When the number of training loops shown by epoch_num is finished the code 
+# If Restore == True, the code will load from a saved model in './ckpt_nnT_1h_files', else, it 
+# will create the './ckpt_nnT_1h_files' to save the parameter files. The code also can run on 
+# GPU as well as CPU if GPU is available. While training, the code will output the training 
+# and testing accuracy. When the number of training loops shown by epoch_num is finished the code 
 # evaluates the estimated wavelengths of test samples and writes them in the file named
 # 'Estimation_by_MSELoss_T_1h.xlsx'; it also outputs the testing time.
 

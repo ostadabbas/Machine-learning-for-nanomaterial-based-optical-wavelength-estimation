@@ -1,19 +1,28 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Jul  3 12:24:28 2019
+## Support vector machines, using Sklearn
+# This code trains a support vector machine model by desired parameters and kernel type, 
+# and finally outputs a file containing the estimated wavelengths as well as truth-value 
+# wavelengths of the test samples. The training data, test data and labels were initially 
+# extracted in MATLAB, so we kept them the way they were. Trainng set and test set are 
+# long matrices of 11 columns of transmittances values, one column per filter. The label 
+# files are single column vectors containing the labels corresponding to each row of the 
+# training/tests sets. The samples should be randomly shuffled before inputing to the code. 
 
-@author: hejazi
-"""
+# This code can either start training the model from scracth or use already 
+# trained model, depending on whether the "Restore" value is set to False or True (shown below). 
+# If Restore == True, the code will load from a saved model in './ckpt_svmT_files', else, it will 
+# create the './ckpt_svmT_files' to save the parameter files. When the "fit" function has finished 
+# its job the "predict" function evaluates the estimated wavelengths of test samples and writes 
+# them in the file named 'Estimation_by_SVM_T_linear.xlsx'; it also outputs the testing time.
 
 from sklearn import svm
 import joblib
 import numpy as np
-# %matplotlib inline
 import xlsxwriter
 import scipy.io as sio
 import time
 import os
 
+# You can chose the kernel type, degree and tolerance parameters here
 # kernel='rbf', tol=0.000001, degree=1
 svm_lin_clf = svm.SVC(gamma='auto', kernel='linear', tol=1e-6)
 
@@ -26,10 +35,10 @@ if __name__ == '__main__':
     if not os.path.exists(save_PATH):
         os.makedirs(save_PATH)
         
-    train_set = sio.loadmat('./Data/trainT.mat')['trainT']
-    test_set = sio.loadmat('./Data/testT_190812.mat')['testT_190812']
-    train_labels = sio.loadmat('./Data/trainT_labels.mat')['trainT_labels'].reshape(-1)
-    test_labels = sio.loadmat('./Data/testT_labels_190812.mat')['testT_labels_190812'].reshape(-1)
+    train_set = sio.loadmat('trainT.mat')['trainT']
+    test_set = sio.loadmat('testT.mat')['testT']
+    train_labels = sio.loadmat('trainT_labels.mat')['trainT_labels'].reshape(-1)
+    test_labels = sio.loadmat('testT_labels.mat')['testT_labels'].reshape(-1)
 
     min_val = train_labels.min()
     train_labels = train_labels - min_val
@@ -45,22 +54,21 @@ if __name__ == '__main__':
     if Restore == False:
         print("Training...")
         
-
         #Load from previously trained file
+        # Comment the 2 lines below if loading from a trained model
         print ("using trained model")
         svm_lin_clf = joblib.load(PATH_Net)
     
         #Train new model
-        #print ("building new model")
-        #svm_lin_clf.fit(train_set, train_labels)
-        #joblib.dump(svm_lin_clf, PATH_Net)
+        # Comment the 3 lines below if loading from a trained model
+        print ("building new model")
+        svm_lin_clf.fit(train_set, train_labels)
+        joblib.dump(svm_lin_clf, PATH_Net)
         
         time_start = time.time()    
         pred_test = svm_lin_clf.predict(test_set)
         time_end = time.time() 
         pred_train = svm_lin_clf.predict(train_set)
-#        print (pred == test_labels)
-#        print (np.sum(pred == test_labels))
         acc_test = np.sum(pred_test == test_labels) / test_set.shape[0] * 100
         acc_train = np.sum(pred_train == train_labels) / train_set.shape[0] * 100
         print ('Test_set accuracy : %d' % (acc_test))
@@ -77,19 +85,15 @@ if __name__ == '__main__':
         pred_test = svm_lin_clf.predict(test_set)
         time_end = time.time()
         
-#        pred_train = svm_lin_clf.predict(train_set)
         acc_test = np.sum(pred_test == test_labels) / test_set.shape[0] * 100
-#        acc_train = np.sum(pred_train == train_labels) / train_set.shape[0] * 100
         print ('Test_set accuracy : %d' % (acc_test))
-#        print ('Training_set accuracy : %d' % (acc_train))
     
-        
         
     Trials_estimation = pred_test + min_val
     Trials_labels = test_labels + min_val
     vals = [(Trials_labels[i], Trials_estimation[i]) for i in range (len(Trials_labels))]
     
-    workbook = xlsxwriter.Workbook('Estimation_by_SVM_T_linear_190812.xlsx')
+    workbook = xlsxwriter.Workbook('Estimation_by_SVM_T_linear.xlsx')
     worksheet = workbook.add_worksheet()
     col = 0
 
