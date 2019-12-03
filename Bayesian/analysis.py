@@ -1,9 +1,18 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Oct 16 16:08:44 2019
+
+@author: davoud
+"""
+
 import json
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import stats
 import xlsxwriter
 import time
+import pdb
 
 def load(fname):
     model = None
@@ -58,7 +67,7 @@ def plot_prob(obs, model):
 def test_trials():
     model = load("trans.json")
     waves = model['wavelengths']
-    trials = np.genfromtxt('trialsT_New.csv', delimiter=',')
+    trials = np.genfromtxt('trialsT_191001.csv', delimiter=',')
     trials = trials[:2,:]
     print(trials.shape)
     freqs = trials[:,0].astype(int)
@@ -79,9 +88,6 @@ def test_trials():
 
 def demo():
     model = load("trans.json")
-#    model = load('trans_prime.json')
-#    model = load('trans.json')
-#    waves=[400,500,600,700,800,900,1000,1100]
     waves=[360]
     for w in waves:
         x = gen_test(model, w)
@@ -120,69 +126,50 @@ def arg_max(input_waves):
     workbook.close()  
     return max_probs
 
-#input_waves = [350,375,400,425,450,475,500,525,550,575,600,625,637,650,675,700,725,750,775,800,825,850,875,900,925,950,975,1000,1025,1050,1075]
 input_waves = np.arange(1100,349,-1)
-    
-#for entire spectrum:
-#    model = load("trans_prime.json")
-#    input_waves = model['wavelengths']
+
     
 def check_trials(): # 
     model = load("trans.json")
     waves = model['wavelengths']
-    trials = np.genfromtxt('trialsT_New.csv', delimiter=',')
+    trials = np.genfromtxt('trialsT_191001.csv', delimiter=',')
+#    howmany = 200
     trials = trials[:,:]
     freqs = trials[:,0].astype(int)
     data = trials[:,1:]
     mns = model['means']
     stds = model['stds']
+    stds_log = np.sum(np.log(stds), axis = 1)
 #    wave_st = 350 
     
+#    pdb.set_trace()
     def find_map(obs):
-        # make a talbe  
-        # from obs, 11 
-        # 
-        #  for wave in waves: for T in obs: get mn std, get  prob  add to list prob_li [N x 11]
-        # make prob 
-        prob_li = []
-        i = 0 
-        for mean_wv, std_wv in zip(mns,stds): 
-#            wave = i+ wave_st
-            prob_wv_li = []
-#            chkTm_st = time.time()
-            for T, mean, std in zip(obs, mean_wv, std_wv):
-                probT = stats.norm.pdf(T,mean,std)  # time consued about 0.1 ms for each normal dist
-                prob_wv_li.append(probT)    # 11 ft pro
-            prob_li.append(np.prod(prob_wv_li))
-#            if i == 300:
-#                print('each wv quiry takes time', time.time() - chkTm_st)
-#            i +=1 
+        #pdb.set_trace()
+        prob_li = -stds_log-1.0/2*np.sum(((mns-obs)/stds)**2, axis = 1)
+
         lam = waves[np.argmax(prob_li)]
         return lam
         
-#        prob, w = full_prob(obs,model) # w is not used
-#        lam = waves[np.argmax(prob)]
-#        return lam
     def find_all():
         for idx,f,x in zip(range(len(freqs)),freqs,data):
             yield f,find_map(x)
-            if (idx % 10) == 0:
-                print("{} of {}".format(idx,len(freqs)))
+#            if (idx % 100) == 0:
+#                print("{} of {}".format(idx,len(freqs)))
                 
     time_start = time.time()            
     vals = list(find_all())
     time_end = time.time()
     
-    workbook = xlsxwriter.Workbook("Argmax_test_Liu.xlsx")
-    worksheet = workbook.add_worksheet()
-    row = 1
-
-    for col, data in enumerate(vals):
-        worksheet.write_column(row, col, data)
-    workbook.close()  
+#    workbook = xlsxwriter.Workbook("Argmax_191001_vectorized.xlsx")
+#    worksheet = workbook.add_worksheet()
+#    row = 1
+#
+#    for col, data in enumerate(vals):
+#        worksheet.write_column(row, col, data)
+#    workbook.close()  
     
     print('elapsed time (sec) : %0.2f' % ((time_end-time_start)))
-    return vals
+#    return vals
     
     
     
