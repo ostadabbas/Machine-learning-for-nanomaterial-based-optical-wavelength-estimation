@@ -1,24 +1,26 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Apr 17 15:42:34 2019
+# This code creates a 4-layer fully connected neural network architecture, an input layer, 
+# two hidden layers and an output laye, to train the model, and finally outputs a file
+# containing the estimated wavelengths as well as truth-value wavelengths of the 
+# test samples. The training data, test data and labels were initially extracted in MATLAB,
+# so we kept them the way they were. Trainng set and test set are long matrices of 11 
+# columns of transmittances values, one column per filter. The label files are single column
+# vectors containing the labels corresponding to each row of the training/tests sets.
+# The samples should be randomly shuffled before inputing to the code. 
 
-@author: davoud
-"""
-
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Jan 22 17:11:14 2019
-
-@author: Amir
-"""
+# This code can either start training the model from scracth or use already 
+# trained model, depending on whether the "Restore" value is set to False or True (shown below). 
+# If Restore == True, the code will load from a saved model, else, it will create the
+# './ckpt_nnT_2h_files' to save the parameter files. The code also can run on GPU as well as
+# CPU if GPU is available. While training, the code will output the training and testing  
+# accuracy. When the number of training loops shown by epoch_num is finished the code 
+# evaluates the estimated wavelengths of test samples and writes them in the file named
+# 'Estimation_by_MSELoss_T_2h.xlsx'; it also outputs the testing time.
 
 import torch, torch.nn as nn
 import torch.utils.data
 import numpy as np
 import torch.optim as optim
 from torch.autograd import Variable
-import matplotlib.pyplot as plt
 import xlsxwriter
 import os
 import time
@@ -26,8 +28,6 @@ import scipy.io as sio
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print(' Processor is %s' % (device))
-
-time_start = time.time()
 
 class NN_classifier(nn.Module):
     def __init__(self, inp, h1, h2, class_num):
@@ -41,15 +41,12 @@ class NN_classifier(nn.Module):
 
     def forward(self, x):
         fc1_out = self.tanh(self.fc1(x))
-#        fc1_out = self.fc1(x)
-#        class_output = self.sigmoid(self.fc2(fc1_out))
         fc2_out = self.tanh(self.fc2(fc1_out))
-        class_output = self.sigmoid(self.fc3(fc2_out)) # Why sigmoid?
+        class_output = self.sigmoid(self.fc3(fc2_out)) 
         output = self.softmax(self.fc3(fc2_out))
     
         return class_output, output
 
-#CELoss = torch.nn.CrossEntropyLoss(size_average = False, reduce = True)
 mseLoss = torch.nn.MSELoss(size_average = False, reduce = True)
 
 if __name__ == '__main__':
@@ -62,48 +59,34 @@ if __name__ == '__main__':
         os.makedirs(save_PATH)
     
     # load  Dataset
-    train_set = sio.loadmat('./Data/trainT.mat')['trainT']
-    test_set = sio.loadmat('./Data/testT_190812.mat')['testT_190812']
-    train_labels = sio.loadmat('./Data/trainT_labels.mat')['trainT_labels'].reshape(-1)
-    test_labels = sio.loadmat('./Data/testT_labels_190812.mat')['testT_labels_190812'].reshape(-1)
+    train_set = sio.loadmat('trainT.mat')['trainT']
+    test_set = sio.loadmat('testT.mat')['testT']
+    train_labels = sio.loadmat('trainT_labels.mat')['trainT_labels'].reshape(-1)
+    test_labels = sio.loadmat('testT_labels.mat')['testT_labels'].reshape(-1)
     
     min_val = train_labels.min()
-#    mat = np.zeros(shape = (len(train_labels), 770)) # 770 is Class_num
-#    for ii in range(len(train_labels)):  
-#        mat[ii, train_labels[ii]-min_val] = 1            # 331 is 
-#    train_labels = mat
-    
-#    mat = np.zeros(shape = (len(test_labels), 770))
-#    for ii in range(len(test_labels)):
-#        mat[ii, test_labels[ii]-min_val] = 1
-#    test_labels = mat
         
 
     batch_size = 5000
     nData, inp = train_set.shape
-    
-#    max_value = train_set.max()
-#    train_set = train_set / max_value
+
     train_set = torch.FloatTensor(train_set)
-    train_labels = torch.LongTensor(train_labels.astype('double')- min_val)   ## .astype('double')
-    
+    train_labels = torch.LongTensor(train_labels.astype('double')- min_val)
     training_set = [[train_set[i], train_labels[i]] for i in range(len(train_set))]
     
-#    test_set = test_set / max_value
     test_set = torch.FloatTensor(test_set)
     test_set = test_set.to(device)
-    test_labels = torch.LongTensor(test_labels.astype('double')- min_val) ## .astype('double')
+    test_labels = torch.LongTensor(test_labels.astype('double')- min_val)
     test_labels = test_labels.to(device)
-    
     train_loader = torch.utils.data.DataLoader(training_set, batch_size=batch_size, shuffle=True)
     
-    lr = 1e-4
-    h1 = 100
-    h2 = 400
-    class_num = 750
-    epoch_num = 100000
-    PATH_Net = save_PATH + '/Net_epoch%d' % (epoch_num)
-    PATH_Opt = save_PATH + '/Opt_epoch%d' % (epoch_num)
+    lr = 1e-4  # Learning rate. Should be picked careffully for code to diverge
+    h1 = 100   # First hidden layer size
+    h2 = 400   # Second hidden layer size
+    class_num = 750 # Output layer size equal to number of distinct wavelengths
+    epoch_num = 100000 # Number of training iterations
+    PATH_Net = save_PATH + '/Net_epoch%d' % (epoch_num) # Paths to save the state of the system in case
+    PATH_Opt = save_PATH + '/Opt_epoch%d' % (epoch_num) # the trainig stops unexoectedly or by force
     
     nn_classifier = NN_classifier(inp, h1, h2, class_num)
     optimizer = optim.Adam(nn_classifier.parameters(), lr=lr)
@@ -138,34 +121,21 @@ if __name__ == '__main__':
                 
                 labels_data = Variable(labels_data).to(device)
                 
-                # zero the gradients
                 optimizer.zero_grad()
             
-                # get output from both modules  
                 class_output, output = nn_classifier.forward(train_data)
                 _, pred_idx = torch.max(output, dim = 1)
                 _, labels_idx = torch.max(labels_data, dim = 1)
                 acc_train += torch.sum(pred_idx == labels_idx).type('torch.FloatTensor')
-#                acc_train += torch.sum(torch.abs(pred_idx - labels_data)/(labels_data + min_val))
                 
-                
-#                back propagation
-#                loss = CELoss(class_output, labels_data)
                 loss = mseLoss(output, labels_data)
                 loss.backward()
                 optimizer.step()
-    
                 loss_value += loss.item()
                 
             time_end = time.time()
-            
-#            _, output_test = nn_classifier.forward(test_set)
-#            _, pred_idx = torch.max(output_test, dim = 1)
             _, output_test = nn_classifier.forward(test_set)
-#            output_test = np.array(output_test[0])
-            _, pred_idx = torch.max(output_test, dim = 1)
-#            _, testlabel_idx = torch.max(test_labels, dim = 1)
-            
+            _, pred_idx = torch.max(output_test, dim = 1)            
 
             acc_test = torch.sum(pred_idx == test_labels).type('torch.FloatTensor') / test_set.size()[0] * 100
             acc_train_value = acc_train / train_set.size()[0] * 100
@@ -181,37 +151,25 @@ if __name__ == '__main__':
             torch.save(optimizer.state_dict(), PATH_Opt)
 
     if Restore:
-        nn_classifier.load_state_dict(torch.load(PATH_Net)) #, map_location=lambda storage, loc: storage))
+        print("Testing...")
+                
+        nn_classifier.load_state_dict(torch.load(PATH_Net)) 
         optimizer.load_state_dict(torch.load(PATH_Opt)) 
         time_start = time.time()
         _, output_test = nn_classifier.forward(test_set)
     
     _, pred_idx = torch.max(output_test, dim = 1)
     time_end = time.time()
-#    _, testlabel_idx = torch.max(test_labels, dim = 1)
-#    Trials_estimation = test_labels[pred_idx]  ## check this
     Trials_estimation = pred_idx.detach().numpy() + min_val
     Trials_labels = test_labels.detach().numpy() + min_val
     vals = [(Trials_labels[i], Trials_estimation[i]) for i in range(len(Trials_labels))]
     
-    workbook = xlsxwriter.Workbook('Estimation_by_MSELoss_T_2h_190812.xlsx')
+    workbook = xlsxwriter.Workbook('Estimation_by_MSELoss_T_2h.xlsx')
     worksheet = workbook.add_worksheet()
     col = 0
     
     for row, data in enumerate(vals):
         worksheet.write_row(row, col, data)
     workbook.close()
-
-    
     print ('elapsed time (sec) : %0.3f' % ((time_end-time_start)))
     
-    
-#    rel_loss = 0
-#    _, output = nn_classifier.forward(train_set)
-#    patch_power = torch.sqrt(torch.mean(torch.pow(patches[i],2))).item()
-#    error_power = torch.sqrt(torch.mean(torch.pow(patches[i]-reconstructed_output,2))).item()
-#    #rel_loss += L2Loss.item() / patch_power
-#    rel_loss += error_power / patch_power
-#       
-#    print(rel_loss/nPatches)
-#    print('success!')
