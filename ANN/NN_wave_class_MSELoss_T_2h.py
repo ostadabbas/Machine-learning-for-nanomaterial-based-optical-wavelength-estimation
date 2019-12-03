@@ -54,7 +54,7 @@ mseLoss = torch.nn.MSELoss(size_average = False, reduce = True)
 
 if __name__ == '__main__':
     
-    Restore = False
+    Restore = True
 
     #Path parameters
     save_PATH = './ckpt_nnT_2h_files'
@@ -63,9 +63,9 @@ if __name__ == '__main__':
     
     # load  Dataset
     train_set = sio.loadmat('./Data/trainT.mat')['trainT']
-    test_set = sio.loadmat('./Data/testT.mat')['testT']
+    test_set = sio.loadmat('./Data/testT_190812.mat')['testT_190812']
     train_labels = sio.loadmat('./Data/trainT_labels.mat')['trainT_labels'].reshape(-1)
-    test_labels = sio.loadmat('./Data/testT_labels.mat')['testT_labels'].reshape(-1)
+    test_labels = sio.loadmat('./Data/testT_labels_190812.mat')['testT_labels_190812'].reshape(-1)
     
     min_val = train_labels.min()
 #    mat = np.zeros(shape = (len(train_labels), 770)) # 770 is Class_num
@@ -141,7 +141,7 @@ if __name__ == '__main__':
                 # zero the gradients
                 optimizer.zero_grad()
             
-                # get output from both modules	
+                # get output from both modules  
                 class_output, output = nn_classifier.forward(train_data)
                 _, pred_idx = torch.max(output, dim = 1)
                 _, labels_idx = torch.max(labels_data, dim = 1)
@@ -182,25 +182,28 @@ if __name__ == '__main__':
 
     if Restore:
         nn_classifier.load_state_dict(torch.load(PATH_Net)) #, map_location=lambda storage, loc: storage))
+        optimizer.load_state_dict(torch.load(PATH_Opt)) 
+        time_start = time.time()
         _, output_test = nn_classifier.forward(test_set)
     
     _, pred_idx = torch.max(output_test, dim = 1)
+    time_end = time.time()
 #    _, testlabel_idx = torch.max(test_labels, dim = 1)
 #    Trials_estimation = test_labels[pred_idx]  ## check this
     Trials_estimation = pred_idx.detach().numpy() + min_val
     Trials_labels = test_labels.detach().numpy() + min_val
     vals = [(Trials_labels[i], Trials_estimation[i]) for i in range(len(Trials_labels))]
     
-    workbook = xlsxwriter.Workbook('Book1.xlsx')
+    workbook = xlsxwriter.Workbook('Estimation_by_MSELoss_T_2h_190812.xlsx')
     worksheet = workbook.add_worksheet()
     col = 0
-
+    
     for row, data in enumerate(vals):
         worksheet.write_row(row, col, data)
     workbook.close()
 
-    time_end = time.time()
-    print ('elapsed time (sec) : %0.2f' % ((time_end-time_start)))
+    
+    print ('elapsed time (sec) : %0.3f' % ((time_end-time_start)))
     
     
 #    rel_loss = 0
