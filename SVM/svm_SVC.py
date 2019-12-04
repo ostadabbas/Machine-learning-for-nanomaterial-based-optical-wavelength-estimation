@@ -12,7 +12,8 @@
 # If Restore == True, the code will load from a saved model in './ckpt_svmT_files', else, it will 
 # create the './ckpt_svmT_files' to save the parameter files. When the "fit" function has finished 
 # its job the "predict" function evaluates the estimated wavelengths of test samples and writes 
-# them in the file named 'Estimation_by_SVM_T_linear.xlsx'; it also outputs the testing time.
+# them in the file named 'Estimation_by_SVM_T_linear.xlsx'; it also outputs the testing time. 
+# The user may change the file name ending: _linear if different kernel is employed.
 
 from sklearn import svm
 import joblib
