@@ -16,7 +16,8 @@
 # GPU as well as CPU if GPU is available. While training, the code will output the training 
 # and testing accuracy. When the number of training loops shown by epoch_num is finished the code 
 # evaluates the estimated wavelengths of test samples and writes them in the file named
-# 'Estimation_by_MSELoss_T_1h.xlsx'; it also outputs the testing time.
+# 'Estimation_by_MSELoss_T_1h.xlsx'; it also outputs the elapsed time for testing the entire
+# test set.
 
 import torch, torch.nn as nn
 import torch.utils.data
@@ -161,6 +162,7 @@ if __name__ == '__main__':
     vals = [(Trials_labels[i], Trials_estimation[i]) for i in range(len(Trials_labels))]
         
     workbook = xlsxwriter.Workbook('Estimation_by_MSELoss_T_1h.xlsx')
+    # This file contains two columns: real wavelengths and the estimated wavelegnths.
     worksheet = workbook.add_worksheet()
     col = 0
     

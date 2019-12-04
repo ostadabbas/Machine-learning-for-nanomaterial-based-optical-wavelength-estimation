@@ -137,13 +137,13 @@ input_waves = np.arange(1100,349,-1)  # Example of input waves that user can pro
 # test samples for alll of these wavelengths, esrtimate their wavelength, and output 
 # arg_max(input_waves) will synthesie on the screen.
 
-   
+
+def check_trials(): 
 # "Call this function for:"
 # This function estimates the wavelength of entire or a portion of the test set.
 # While doing so, it shows the resuts at every 100 saples, and finally writes the 
-# entire results in "Argmax_test.xlsx" file. This function also shows the total time 
-# for testing in the screen.
-def check_trials(): 
+# entire results in "Argmax_test.xlsx" file. This function also outputs the 
+# elapsed time for testing the entire test set.
     model = load("trans.json")
     waves = model['wavelengths']
     trials = np.genfromtxt('trialsT.csv', delimiter=',')
@@ -172,6 +172,7 @@ def check_trials():
     time_end = time.time()
     
     workbook = xlsxwriter.Workbook("Argmax_test.xlsx")
+    # This file contains two columns: real wavelengths and the estimated wavelegnths.
     worksheet = workbook.add_worksheet()
     row = 1
 
