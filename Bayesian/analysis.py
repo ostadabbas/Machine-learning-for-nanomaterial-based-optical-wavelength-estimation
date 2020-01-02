@@ -1,15 +1,4 @@
 ## Bayesian inference, part 2:
-# This is the main code to perform the Bayesian inference. It reads the "trans.json" 
-# file as well as "testT.csv" file, and outputs the estimated wavelengths for 
-# real/synthesied test samples  using maximum a posteriori or MAP estimation. The estimated 
-# wavelengths for synthesized test samples can show how well the model is working on the 
-# training set itself. This way, user can calculate test error and training error. Each 
-# section of this code can accomplish a different task. First, the used needs to run 
-# the code, but it will not output any results. To obtain results the user needs to 
-# call specific funcitons defined in this code. The task of each function is explained 
-# right before fucntion's definition. First, run the code; then choose a function, 
-# and call it from console or comand line. The functions that output desired results 
-# are pointed out by "Call this function for:". 
 
 import json
 import numpy as np

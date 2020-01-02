@@ -1,18 +1,4 @@
 ## Bayesian inference, part 1:
-# Gathering statistics from the xlsx files. This code reads a "Transmittance.xlsx" 
-# that contains entire training set and outputs a "trans.json" file that contains 
-# the statistics of mean average transmittance for each filter at each wavelength. 
-# In our case it contains 11 sheets, one sheet per nanomaterial filter (F1, F2, ..., F11). 
-# Each sheet contains transimttance spectrum that filter. The first column is wavelength, 
-# and from second column to the end the transmittance values are given. 
-
-# Furthermore, this file can read a second file "TestT.xlsx" containg the test samples.
-# The format of this file is the same as the Transmittance.xlsx file. Upon executing 
-# this code will read the test samples and put all of them in a "testT.csv" file in a 
-# single sheet in a way that each row is a sample of T vector including 11 transmittance
-# values t1, t2, ..., t11, one per filter. The total number of rows is equal to the total 
-# number of samples. If the test sample file is alredy at hand in the mentioned way and 
-# this part of the code is not needed the user can comment out the last two lines of code.
 
 import openpyxl
 import numpy as np
