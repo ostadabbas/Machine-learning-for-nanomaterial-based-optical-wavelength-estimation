@@ -1,4 +1,0 @@
-Data files:
------------ 
-The data are collected using Perkin-Elmer UVvisNIR spectrometer on 11 nanomaterial filters. Each file is a ".mat" or matlab file readbale by the Python codes given in this project. The given codes read these files automatically. The "trainT.mat" file is a tall matrix (75000 by 11) where each row is one training sample: a vector of 11 tramsmittance values btw 0 and 1. The "trainT_lables.mat" is 75000 by 1 matrix, where the element in each rwo is the lable (wavelength) of corresponding row in "trainT.mat" file. 
-It's the same for the "testT.mat" and "testT_labels.mat" files except they have 7500 rows only. These tow files are used only for testing purposes.
