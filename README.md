@@ -1,6 +1,6 @@
 # Use-specific High Performance Cyber-Nanomaterial Optical Detectors
 
-![multiModa](images/TOC.pdf)
+![multiModa](images/TOC.jpg)
 
 This is the training pipeline used for:
 
@@ -21,7 +21,7 @@ To run these codes, make sure the following are installed:
 - PyTorch
 - Sklearn
 
-Download the codes and the DATA from this repository. Each folder is dedicated for a specific machine learning algorithm: ANN, SVM, Bayesian, kNN.
+Download the codes and the data from this repository. Each folder is dedicated for a specific machine learning algorithm: ANN, SVM, Bayesian, kNN.
 
 ## Data files
 The data are collected using Perkin-Elmer UVvisNIR spectrometer on 11 nanomaterial filters. Each file is a ".mat" or matlab file readbale by the Python codes given in this project. The given codes read these files automatically. The "trainT.mat" file is a tall matrix (75000 by 11) where each row is one training sample: a vector of 11 tramsmittance values btw 0 and 1. The "trainT_lables.mat" is 75000 by 1 matrix, where the element in each rwo is the lable (wavelength) of corresponding row in "trainT.mat" file. 
@@ -29,13 +29,13 @@ It's the same for the "testT.mat" and "testT_labels.mat" files except they have 
 
 
 ## Running the wavelength estimation codes
+Each code is inside the corresponding folder. To run the ANN, SVM and kNN codes copy the data in Data folder to each of these folders. The required data for Bayesain code is already in that folder and the only difference is that the Bayrsian code data is in excel sheets, while the data for other codes are as matlab data files that these codes will read directly. Below is explanaiton of how to use each codes that are inside the folders ANN, Bayesian, SVM, and kNN.
+
 
 ## ANN: Artificial neural networks, using Torch
-
-
 ### NN_wave_class_MSELoss_T_1h.py: ###
-This code creates a 3-layer fully connected neural network architecture, an input layer, 
-a hidden layer and an output laye, to train the model, and finally outputs a file containing 
+
+This code which is inside ANN folder, creates a 3-layer fully connected neural network architecture, an input layer, a hidden layer and an output laye, to train the model, and finally outputs a file containing 
 the estimated wavelengths as well as truth-value wavelengths of the test samples. 
 The training data, test data and labels were initially extracted in MATLAB, so we kept them 
 the way they were. Trainng set and test set are long matrices of 11 columns of transmittances 
@@ -53,11 +53,8 @@ evaluates the estimated wavelengths of test samples and writes them in the file 
 'Estimation_by_MSELoss_T_1h.xlsx'; it also outputs the elapsed time for testing the entire
 test set.
 
-
-
 ### NN_wave_class_MSELoss_T_2h.py: ###
-This code creates a 4-layer fully connected neural network architecture, an input layer, 
-two hidden layers and an output laye, to train the model, and finally outputs a file
+This code which is inside ANN folder, creates a 4-layer fully connected neural network architecture, an input layer, two hidden layers and an output laye, to train the model, and finally outputs a file
 containing the estimated wavelengths as well as truth-value wavelengths of the 
 test samples. The training data, test data and labels were initially extracted in MATLAB,
 so we kept them the way they were. Trainng set and test set are long matrices of 11 
@@ -77,11 +74,10 @@ evaluates the estimated wavelengths of test samples and writes them in the file 
 test set.
 
 
-## Bayesian inference
 ## Bayesian inference, part 1:
 ### gather_stats.py: ###
 
-Gathering statistics from the xlsx files. This code reads a "Transmittance.xlsx" 
+Gathering statistics from the xlsx files. This code, which is inside Bayesian folder, reads a "Transmittance.xlsx" 
 that contains entire training set and outputs a "trans.json" file that contains 
 the statistics of mean average transmittance for each filter at each wavelength. 
 In our case it contains 11 sheets, one sheet per nanomaterial filter (F1, F2, ..., F11). 
@@ -93,17 +89,16 @@ this code will read the test samples and put all of them in a "testT.csv" file i
 single sheet in a way that each row is a sample of T vector including 11 transmittance
 values t1, t2, ..., t11, one per filter. The total number of rows is equal to the total number of samples. If the test sample file is alredy at hand in the mentioned way and this part of the code is not needed the user can comment out the last two lines of code.
 
-### Bayesian inference, part 2: ###
+### Bayesian: Bayesian inference, part 2: ###
 ## analysis.py:
 
-This is the main code to perform the Bayesian inference. It reads the "trans.json" 
-file as well as "testT.csv" file, and outputs the estimated wavelengths for 
+This code, which is inside Bayesian folder, is the main code to perform the Bayesian inference. It reads the "trans.json" file as well as "testT.csv" file, and outputs the estimated wavelengths for 
 real/synthesied test samples  using maximum a posteriori or MAP estimation. The estimated wavelengths for synthesized test samples can show how well the model is working on the training set itself. This way, user can calculate test error and training error. Each section of this code can accomplish a different task. First, the used needs to run the code, but it will not output any results. To obtain results the user needs to call specific funcitons defined in this code. The task of each function is explained right before fucntion's definition. First, run the code; then choose a function, and call it from console or comand line. The functions that output desired results are pointed out by "Call this function for:". 
 
-### Support vector machines, using Sklearn ###
+
+### SVM: Support vector machines, using Sklearn ###
 ### svm_SVC.py ###
-This code trains a support vector machine model by desired parameters and kernel type, 
-and finally outputs a file containing the estimated wavelengths as well as truth-value 
+This code, which is inside SVM folder, trains a support vector machine model by desired parameters and kernel type, and finally outputs a file containing the estimated wavelengths as well as truth-value 
 wavelengths of the test samples. The training data, test data and labels were initially 
 extracted in MATLAB, so we kept them the way they were. Trainng set and test set are 
 long matrices of 11 columns of transmittances values, one column per filter. The label 
@@ -120,11 +115,10 @@ testing the entire test set.
 The user may change the file name ending: "_linear" if different kernel is employed.
 
 
-## k-nearest neighbors
-### Finding best k for by instance k-nn ###
+## kNN: k-nearest neighbors
 ### knn.m ###
-This code has two parts. Part 1, calculates the mean accuracy in estimating
-wavelengths of test set using k in the range k=[0:20] in order to find 
+### Finding best k for by instance k-nn ###
+This code, which is a matlab code inside kNN folder, has two parts. Part 1, calculates the mean accuracy in estimating wavelengths of test set using k in the range k=[0:20] in order to find 
 the best k that yileds the highest accuracy. This part of the code outputs 
 the excel file 'kMeans.xlsx'. The largest value in this file should belong 
 to the optimal k. This part only needs to be execued onece to find optimal k. 
@@ -166,6 +160,7 @@ The current research was started in our previous research where we had introduce
   publisher={ACS Publications}
 }
 ```
+![multiModa](images/TOC1.jpg)
 
 ## License 
 * This code is for non-commertial purpose only. For other uses please contact ACLab of NEU. 
