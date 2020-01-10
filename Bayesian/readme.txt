@@ -1,4 +1,4 @@
-analysis.py:
+gather_stats.py:
 ------------
 ## Bayesian inference, part 1:
 Gathering statistics from the xlsx files. This code reads a "Transmittance.xlsx" 
@@ -16,7 +16,7 @@ values t1, t2, ..., t11, one per filter. The total number of rows is equal to th
 
 
 
-gather_stats.py:
+analysis.py:
 ----------------
 ## Bayesian inference, part 2:
 This is the main code to perform the Bayesian inference. It reads the "trans.json" 
