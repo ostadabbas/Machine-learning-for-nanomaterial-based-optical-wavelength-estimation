@@ -75,7 +75,7 @@ def load_test(fname):
         for f in tfreqs:
             df = pandas.DataFrame(wb[f].values)
             data = np.array(df.dropna())
-            data = np.insert(data, 0, float(f), axis=1)
+            # data = np.insert(data, 0, float(f), axis=1)
             yield data
     vals = np.array(list(proc()))
     vals = vals.reshape((-1,vals.shape[2]))
@@ -86,5 +86,5 @@ def load_test(fname):
 if __name__ == "__main__":
     save_model("Transmittance.xlsx", "trans.json")
     
-    vals = load_test('TestT.xlsx')
-    np.savetxt('testT.csv',vals, delimiter=',')
+    # vals = load_test('TestT.xlsx')
+    # np.savetxt('testT.csv',vals, delimiter=',')

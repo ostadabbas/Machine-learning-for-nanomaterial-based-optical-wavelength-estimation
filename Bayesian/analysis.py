@@ -56,7 +56,7 @@ def plot_prob(obs, model):
 def test_trials():
     model = load("trans.json")
     waves = model['wavelengths']
-    trials = np.genfromtxt('trialsT.csv', delimiter=',')
+    trials = np.genfromtxt('testT.csv', delimiter=',')
     trials = trials[:2,:]
     print(trials.shape)
     freqs = trials[:,0].astype(int)
@@ -103,6 +103,10 @@ def arg_max(input_waves):
 # synthesizes test samples for them, finds their estimated wavelengths, outputs
 # the results in the screen as well as writes them in file "Argmax_train.xlsx".
     model = load("trans.json")
+    input_waves = np.arange(1100,349,-1)  # Example of input waves that user can provide. 
+    # Here we have provided an array of all walengths in the training set, so calling 
+    # test samples for alll of these wavelengths, esrtimate their wavelength, and output 
+    # arg_max(input_waves) will synthesie on the screen.
     ws = len(input_waves) # number of desired wavelengths to try
     num = 10              # How many times to try each wavelength
     max_probs = np.zeros(shape=(ws,num))
@@ -121,10 +125,7 @@ def arg_max(input_waves):
     return max_probs
 
 
-input_waves = np.arange(1100,349,-1)  # Example of input waves that user can provide. 
-# Here we have provided an array of all walengths in the training set, so calling 
-# test samples for alll of these wavelengths, esrtimate their wavelength, and output 
-# arg_max(input_waves) will synthesie on the screen.
+
 
 
 def check_trials(): 
@@ -135,7 +136,7 @@ def check_trials():
 # elapsed time for testing the entire test set.
     model = load("trans.json")
     waves = model['wavelengths']
-    trials = np.genfromtxt('trialsT.csv', delimiter=',')
+    trials = np.genfromtxt('testT.csv', delimiter=',')
     trials = trials[:,:] # Here we can set which portion of test set to be tested. The default is all.
     freqs = trials[:,0].astype(int)
     data = trials[:,1:]
